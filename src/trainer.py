@@ -4,6 +4,7 @@ from src.data_loader import load_raw_data, preprocess_datetime
 from src.preprocessor import Preprocessor
 from src.feature_builder import create_sequences
 from models.gru_model import build_gru_model
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import os
 
 def train_pipeline():
@@ -25,6 +26,13 @@ def train_pipeline():
     # 4. Build & Train Model
     input_shape = (X_train.shape[1], X_train.shape[2]) # (24, 1)
     model = build_gru_model(input_shape)
+
+    # 5. Thiết lập cơ chế dừng sớm và lưu mô hình tốt nhất
+    early_stop =EarlyStopping(
+        monitor='val_loss',  
+        patience=Config.PATIENCE,
+        restore_best_weights=True
+    )
     
     print("🚀 Bắt đầu huấn luyện mạng GRU...")
     history = model.fit(
@@ -32,6 +40,7 @@ def train_pipeline():
         epochs=Config.EPOCHS,
         batch_size=Config.BATCH_SIZE,
         validation_data=(X_test, y_test),
+        callbacks=[early_stop],
         verbose=1
     )
     
