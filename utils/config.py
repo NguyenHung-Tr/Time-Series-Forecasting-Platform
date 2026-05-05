@@ -11,8 +11,10 @@ class Config:
     # 3. Đường dẫn lưu mô hình
     MODEL_SAVE_PATH = os.path.join(BASE_DIR, 'models', 'saved_models', 'best_gru_model.h5')
 
-    # 4. Tham số mô hình (Để sau này Hưng mở rộng đa biến chỉ cần sửa ở đây)
-    TARGET_COL = 'AEP_MW'      # Tên cột công suất trong file AEP
+    # 4. Tham số mô hình 
+    TARGET_COL = ['AEP_MW']
+
+    FEATURES = ['AEP_MW','hour','day_of_week','holiday','rolling_mean_24h','lag_24h']
     WINDOW_SIZE = 24           # Dùng 24 tiếng quá khứ
     HORIZON = 1                # Dự báo 1 tiếng tương lai
     

@@ -18,14 +18,11 @@ class Preprocessor:
         return df
 
     def scale_data(self, df):
-        """Chuẩn hóa dữ liệu MW về khoảng [0, 1]"""
-        # GRU/LSTM yêu cầu đầu vào phải được chuẩn hóa để dễ hội tụ
-        data = df[[Config.TARGET_COL]].values
+        data = df[Config.FEATURES].values
         scaled_data = self.scaler.fit_transform(data)
         return scaled_data
 
     def split_data(self, scaled_data):
-        """Chia dữ liệu thành tập Train và Test"""
         train_size = int(len(scaled_data) * (1 - Config.TEST_SPLIT))
         train_data = scaled_data[:train_size]
         test_data = scaled_data[train_size:]

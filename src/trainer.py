@@ -4,6 +4,7 @@ from src.data_loader import load_raw_data, preprocess_datetime
 from src.preprocessor import Preprocessor
 from src.feature_builder import create_sequences
 from models.gru_model import build_gru_model
+from src.feature_builder import add_features, create_sequences
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import os
 
@@ -15,8 +16,9 @@ def train_pipeline():
     pre = Preprocessor()
     df_clean = pre.clean_data(df)
     
+    df_features = add_features(df_clean)    
     # 2. Scale & Split
-    scaled_data = pre.scale_data(df_clean)
+    scaled_data = pre.scale_data(df_features)
     train_data, test_data = pre.split_data(scaled_data)
     
     # 3. Create Sequences (Sliding Window)
