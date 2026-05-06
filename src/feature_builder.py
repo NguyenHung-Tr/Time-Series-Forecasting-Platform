@@ -4,20 +4,15 @@ import pandas as pd
 from utils.config import Config
 
 def add_features(df):
-    #1 Them dac trung thoi gian
+   
     df['hour'] = df.index.hour
     df['day_of_week'] = df.index.dayofweek
     us_holidays = holidays.US()
     df['holiday'] = df.index.map(lambda x: 1 if x in us_holidays else 0)
-
-    #2 Them dac trung thong ke
     df['rolling_mean_24h'] = df[Config.TARGET_COL].rolling(window=24).mean()
-
-    #3 Them dac trung trễ
     df['lag_24h'] = df[Config.TARGET_COL].shift(24)
     df = df.dropna() # Loại bỏ các dòng có giá trị NaN do rolling và shift tạo ra
     return df
-
 
 def create_sequences(data, window_size=Config.WINDOW_SIZE):
     """

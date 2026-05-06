@@ -5,6 +5,7 @@ import argparse
 # Fix lỗi import cho môi trường Windows/Linux
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from src.feature_builder import add_features
 from src.trainer import train_pipeline
 from src.predictor import Predictor
 from src.evaluator import evaluate_model
@@ -27,10 +28,10 @@ def main():
         # 1. Nạp dữ liệu thực tế để lấy cửa sổ cuối cùng (last window)
         df_raw = load_raw_data()
         df_time = preprocess_datetime(df_raw)
-        
         pre = Preprocessor()
         df_clean = pre.clean_data(df_time)
-        scaled_data = pre.scale_data(df_clean)
+        df_features = add_features(df_clean)
+        scaled_data = pre.scale_data(df_features)
         
         # 2. Lấy 24 giờ cuối cùng trong tập dữ liệu để làm mồi dự báo
         last_window = scaled_data[-Config.WINDOW_SIZE:]
