@@ -12,9 +12,16 @@ class Config:
     MODEL_SAVE_PATH = os.path.join(BASE_DIR, 'models', 'saved_models', 'best_gru_model.h5')
 
     # 4. Tham số mô hình 
-    TARGET_COL = ['AEP_MW']
+    TARGET_COL = 'AEP_MW'
 
-    FEATURES = ['AEP_MW','hour','day_of_week','holiday','rolling_mean_24h','lag_24h']
+    FEATURES = [
+        'AEP_MW',          
+        'hour_sin', 'hour_cos', 
+        'day_sin', 'day_cos', 
+        'is_holiday', 
+        'rolling_mean_24h', 
+        'lag_24h'          
+]
     WINDOW_SIZE = 24           # Dùng 24 tiếng quá khứ
     HORIZON = 1                # Dự báo 1 tiếng tương lai
     
@@ -22,5 +29,5 @@ class Config:
     PATIENCE = 5
     # 5. Tham số huấn luyện
     BATCH_SIZE = 32
-    EPOCHS = 50
+    EPOCHS = 100
     LEARNING_RATE = 0.001
