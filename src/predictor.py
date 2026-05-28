@@ -17,19 +17,8 @@ class Predictor:
         predictions = []
         num_features = len(Config.FEATURES)
         current_batch = last_window_data.reshape((1, Config.WINDOW_SIZE, num_features))
-        current_time = start_time
+        res = self.model.predict(current_batch, verbose=0)
+        predictions = res.reshape(-1, 1) 
+        predictions_mw = self.pre.target_scaler.inverse_transform(predictions)
 
-        for i in range(n_steps):
-            res = self.model.predict(current_batch, verbose=0)
-            pred_val = float(res.flatten()[0]) 
-            predictions.append(pred_val)
-            next_row = current_batch[0:, -1:, :].copy()
-            next_row[0,0,0] = pred_val 
-            
-            if current_time is not None:
-                current_time += pd.Timedelta(hours=1)
-                next_row[0,0,1] = np.sin(2 * np.pi * current_time.hour / 24)
-                next_row[0,0,2] = np.cos(2 * np.pi * current_time.hour / 24)
-            current_batch = np.append(current_batch[:, 1:, :], next_row.reshape(1,1,-1), axis=1)
-        
-        return self.pre.target_scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
+        return predictions_mw

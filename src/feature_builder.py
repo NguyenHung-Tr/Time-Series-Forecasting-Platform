@@ -21,19 +21,14 @@ def add_features(df):
     
     return df.dropna()
 
-def create_sequences(data, window_size=Config.WINDOW_SIZE):
+def create_sequences(data, window_size=Config.WINDOW_SIZE, horizon=Config.HORIZON):
     #(Samples, Time_steps, Features)
     X = []
     y = []
-    for i in range(window_size, len(data)):
-        # Lấy window_size dòng trước đó làm đầu vào (X)
+    for i in range(window_size, len(data) - horizon + 1):
         X.append(data[i-window_size:i, :])
-        # Lấy giá trị hiện tại làm mục tiêu dự báo (y)
-        y.append(data[i, 0])
-
+        y.append(data[i:i+horizon, 0])
     X, y = np.array(X), np.array(y)
-
     X = np.reshape(X, (X.shape[0], X.shape[1], -1))
     
-    print(f"✅ Tạo chuỗi thành công: X shape {X.shape}, y shape {y.shape}")
     return X, y

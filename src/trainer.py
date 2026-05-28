@@ -3,7 +3,7 @@ Config = cfg.Config
 from src.data_loader import load_raw_data, preprocess_datetime
 from src.preprocessor import Preprocessor
 from src.feature_builder import create_sequences
-from models.gru_model import build_gru_model
+from models.gru_model import build_model
 from src.feature_builder import add_features, create_sequences
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 import os
@@ -27,7 +27,7 @@ def train_pipeline():
     
     # 4. Build & Train Model
     input_shape = (X_train.shape[1], X_train.shape[2]) # (24, 1)
-    model = build_gru_model(input_shape)
+    model = build_model(input_shape)
 
     # 5. Thiết lập cơ chế dừng sớm và lưu mô hình tốt nhất
     early_stop =EarlyStopping(

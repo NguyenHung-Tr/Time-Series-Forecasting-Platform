@@ -9,7 +9,7 @@ class Config:
     PROCESSED_DATA_PATH = os.path.join(BASE_DIR, 'data', 'processed', 'cleaned_data.csv')
     
     # 3. Đường dẫn lưu mô hình
-    MODEL_SAVE_PATH = os.path.join(BASE_DIR, 'models', 'saved_models', 'best_gru_model.h5')
+    MODEL_SAVE_PATH = os.path.join(BASE_DIR, 'models', 'saved_models', 'seq2seq_model.h5')
 
     # 4. Tham số mô hình 
     TARGET_COL = 'AEP_MW'
@@ -22,8 +22,8 @@ class Config:
         'rolling_mean_24h', 
         'lag_24h'          
 ]
-    WINDOW_SIZE = 24           # Dùng 24 tiếng quá khứ
-    HORIZON = 1                # Dự báo 1 tiếng tương lai
+    WINDOW_SIZE = 24           
+    HORIZON = 24               
     
     TEST_SPLIT = 0.2
     PATIENCE = 5
