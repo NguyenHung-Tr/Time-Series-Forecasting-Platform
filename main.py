@@ -8,7 +8,7 @@ from src.feature_builder import add_features
 from src.trainer import train_pipeline
 from src.predictor import Predictor
 from src.evaluator import evaluate_model
-from src.data_loader import load_raw_data, preprocess_datetime
+from src.data_loader import load_raw_data, preprocess_datetime, load_and_merge_weather
 from src.preprocessor import Preprocessor
 from utils.config import Config
 
@@ -27,8 +27,10 @@ def main():
         # 1. Nạp dữ liệu thực tế 
         df_raw = load_raw_data()
         df_time = preprocess_datetime(df_raw)
+        df_combined = load_and_merge_weather(df_time)
+
         pre = Preprocessor()
-        df_clean = pre.clean_data(df_time)
+        df_clean = pre.clean_data(df_combined)
         df_features = add_features(df_clean)
         scaled_data = pre.scale_data(df_features, is_training=False)
         

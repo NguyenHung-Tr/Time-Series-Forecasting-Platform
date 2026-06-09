@@ -6,6 +6,7 @@ class Config:
     
     # 2. Đường dẫn dữ liệu
     RAW_DATA_PATH = os.path.join(BASE_DIR, 'data', 'raw', 'AEP_hourly.csv')
+    WEATHER_DATA_PATH = os.path.join(BASE_DIR, 'data', 'raw', 'weather_hourly.csv')
     PROCESSED_DATA_PATH = os.path.join(BASE_DIR, 'data', 'processed', 'cleaned_data.csv')
     
     # 3. Đường dẫn lưu mô hình
@@ -15,10 +16,15 @@ class Config:
     TARGET_COL = 'AEP_MW'
 
     FEATURES = [
-        'AEP_MW',          
+        'AEP_MW',
+
+        'temperature', 
+        'humidity',
+
         'hour_sin', 'hour_cos', 
         'day_sin', 'day_cos', 
         'is_holiday', 
+
         'rolling_mean_24h', 
         'lag_24h'          
 ]
@@ -29,5 +35,5 @@ class Config:
     PATIENCE = 5
     # 5. Tham số huấn luyện
     BATCH_SIZE = 32
-    EPOCHS = 100
+    EPOCHS = 50
     LEARNING_RATE = 0.001

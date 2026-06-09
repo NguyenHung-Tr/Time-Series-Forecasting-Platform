@@ -1,6 +1,6 @@
 import utils.config as cfg
 Config = cfg.Config
-from src.data_loader import load_raw_data, preprocess_datetime
+from src.data_loader import load_raw_data, preprocess_datetime, load_and_merge_weather
 from src.preprocessor import Preprocessor
 from src.feature_builder import create_sequences
 from models.gru_model import build_model
@@ -12,9 +12,11 @@ def train_pipeline():
     # 1. Load & Clean
     df = load_raw_data()
     df = preprocess_datetime(df)
+
+    df_combined = load_and_merge_weather(df)
     
     pre = Preprocessor()
-    df_clean = pre.clean_data(df)
+    df_clean = pre.clean_data(df_combined)
     
     df_features = add_features(df_clean)    
     # 2. Scale & Split
