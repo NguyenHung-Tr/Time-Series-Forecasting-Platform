@@ -2,8 +2,14 @@ import pandas as pd
 from utils.config import Config
 import os
 
-def load_raw_data(file_path=Config.RAW_DATA_PATH):
-    """Đọc dữ liệu thô từ CSV"""
+def load_raw_data(file_path=None):
+    """
+    Đọc dữ liệu thô từ CSV. 
+    Tự động truy xuất đường dẫn động theo ZONE hiện tại nếu không truyền file_path.
+    """
+    if file_path is None:
+        file_path = Config.RAW_DATA_PATH
+        
     try:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Không tìm thấy file tại đường dẫn: {file_path}")
@@ -15,7 +21,7 @@ def load_raw_data(file_path=Config.RAW_DATA_PATH):
         return None
 
 def preprocess_datetime(df, time_col='Datetime'):
-    """Xử lý định dạng thời gian và sắp xếp"""
+    """Xử lý định dạng thời gian và sắp xếp chuỗi tuyến tính"""
     if df is None:
         return None
     df[time_col] = pd.to_datetime(df[time_col])
@@ -23,15 +29,19 @@ def preprocess_datetime(df, time_col='Datetime'):
     df = df.set_index(time_col)
     return df
 
-def load_and_merge_weather(df_energy, weather_filepath=Config.WEATHER_DATA_PATH):
+def load_and_merge_weather(df_energy, weather_filepath=None):
     """
-    Tải file thời tiết, xử lý cấu trúc và gộp đồng bộ (Inner Join) với dữ liệu điện năng.
+    Tải file thời tiết của từng phân vùng, xử lý cấu trúc 
+    và gộp đồng bộ (Inner Join) với dữ liệu điện năng tương ứng.
     """
     if df_energy is None:
         print("❌ Dữ liệu điện năng đầu vào bị trống (None). Không thể gộp thời tiết.")
         return None
 
-    # Hỗ trợ tìm file dự phòng ở thư mục gốc nếu không thấy ở thư mục data/raw/
+    if weather_filepath is None:
+        weather_filepath = Config.WEATHER_DATA_PATH
+        
+    # Hỗ trợ tìm file dự phòng ở thư mục gốc nếu không thấy ở thư mục data/raw/{ZONE}/
     if not os.path.exists(weather_filepath):
         backup_path = os.path.basename(weather_filepath)  
         if os.path.exists(backup_path):

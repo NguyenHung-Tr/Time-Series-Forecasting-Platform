@@ -20,19 +20,26 @@ class Preprocessor:
 
     def scale_data(self, df, is_training=True):
         feature_cols = Config.FEATURES
-        target_col = [Config.TARGET_COL]
+        target_cols = Config.TARGET_FEATURES  # Chuyển đổi sang đa biến mục tiêu động
+
+        # Cấu hình đường dẫn lưu Scaler định danh riêng biệt theo từng vùng miền (ZONE)
+        feat_scaler_path = os.path.join(self.scaler_dir, f'{Config.ZONE}_feature_scaler.pkl')
+        targ_scaler_path = os.path.join(self.scaler_dir, f'{Config.ZONE}_target_scaler.pkl')
 
         if is_training:
             scaled_features = self.feature_scaler.fit_transform(df[feature_cols])
-            self.target_scaler.fit(df[target_col]) 
+            self.target_scaler.fit(df[target_cols]) 
             
-            joblib.dump(self.feature_scaler, os.path.join(self.scaler_dir, 'feature_scaler.pkl'))
-            joblib.dump(self.target_scaler, os.path.join(self.scaler_dir, 'target_scaler.pkl'))
+            joblib.dump(self.feature_scaler, feat_scaler_path)
+            joblib.dump(self.target_scaler, targ_scaler_path)
             return scaled_features
         else:
-            # Nạp scaler
-            self.feature_scaler = joblib.load(os.path.join(self.scaler_dir, 'feature_scaler.pkl'))
-            self.target_scaler = joblib.load(os.path.join(self.scaler_dir, 'target_scaler.pkl'))
+            # Nạp bộ chuẩn hóa tương ứng của phân vùng đang cấu hình
+            if os.path.exists(feat_scaler_path) and os.path.exists(targ_scaler_path):
+                self.feature_scaler = joblib.load(feat_scaler_path)
+                self.target_scaler = joblib.load(targ_scaler_path)
+            else:
+                raise FileNotFoundError(f"❌ Không tìm thấy bộ scaler cho vùng {Config.ZONE}. Vui lòng chạy train trước!")
             
             if df.empty:
                 return None
