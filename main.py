@@ -2,6 +2,7 @@ import sys
 import os
 import argparse
 
+# Đảm bảo hệ thống nhận diện đúng đường dẫn package nội bộ khi thực thi
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from src.feature_builder import add_features
@@ -13,47 +14,63 @@ from src.preprocessor import Preprocessor
 from utils.config import Config
 
 def main():
-    parser = argparse.ArgumentParser(description="Hệ thống dự báo phụ tải điện HCMUS")
-    parser.add_argument('--mode', type=str, default='test', help='Chế độ: train hoặc test')
+    parser = argparse.ArgumentParser(description="Hệ thống Dự báo Phụ tải Điện Đa vùng miền - Kiến trúc Seq2Seq")
+    parser.add_argument('--mode', type=str, default='test', help='Chế độ vận hành: train hoặc test')
     args = parser.parse_args()
 
     if args.mode == 'train':
-        print("🏗️  Đang khởi động quá trình huấn luyện...")
+        print("🏗️  Đang khởi động quá trình huấn luyện hệ thống Seq2Seq Đa biến...")
         train_pipeline()
         
     elif args.mode == 'test':
-        print("📊 Đang kiểm tra mô hình và dự báo...")
+        print(f"📊 Đang triển khai kiểm tra mô hình dự báo đa biến cho phân vùng: {Config.ZONE}...")
         
-        # 1. Nạp dữ liệu thực tế 
+        # 1. Pipeline nạp và đồng bộ dữ liệu thô
         df_raw = load_raw_data()
         df_time = preprocess_datetime(df_raw)
         df_combined = load_and_merge_weather(df_time)
 
+        # 2. Xử lý làm sạch và trích xuất ma trận đặc trưng nâng cao
         pre = Preprocessor()
         df_clean = pre.clean_data(df_combined)
         df_features = add_features(df_clean)
         scaled_data = pre.scale_data(df_features, is_training=False)
         
-        # 2. Tách dữ liệu thực tế (y_true) và dữ liệu đầu vào (input)
-        y_true_mw = df_features[Config.TARGET_COL].values[-24:].reshape(-1, 1)
-        input_window = scaled_data[-48:-24]
+        # 3. Tách chuỗi thực tế (y_true) và cửa sổ quá khứ đầu vào (input_window) theo tham số động
+        # Đảm bảo y_true lấy đầy đủ cả 2 cột mục tiêu cấu hình trong TARGET_FEATURES
+        y_true = df_features[Config.TARGET_FEATURES].values[-Config.HORIZON:]
         
-        # 3. Gọi Predictor để đoán 24 giờ tiếp theo
+        # Xác định vị trí động để bóc tách cửa sổ dữ liệu đầu vào quá khứ (WINDOW_SIZE = 24)
+        start_idx = -(Config.WINDOW_SIZE + Config.HORIZON)
+        end_idx = -Config.HORIZON
+        input_window = scaled_data[start_idx:end_idx]
+        
+        # 4. Thực thi dự báo đồng thời qua Predictor (Loại bỏ hoàn toàn đệ quy)
         pd_tool = Predictor()
-        start_forecast_time = df_features.index[-48]
-        forecast_mw = pd_tool.predict_next_hours(input_window, n_steps=24, start_time=start_forecast_time)
+        start_forecast_time = df_features.index[end_idx]
+        forecast_out = pd_tool.predict_next_hours(input_window, n_steps=Config.HORIZON, start_time=start_forecast_time)
         
-        # 4. In kết quả dự báo
-        print("\n🔮 KẾT QUẢ DỰ BÁO VS THỰC TẾ (24h cuối):")
-        print(f"{'Giờ':<10} | {'Dự báo (MW)':<15} | {'Thực tế (MW)':<15}")
-        print("-" * 45)
-        for i in range(24):
-            print(f"Giờ {i+1:<6} | {forecast_mw[i][0]:<15.2f} | {y_true_mw[i][0]:<15.2f}")
+        # Cơ chế phòng vệ cấu hình (Shape Defense): Đảm bảo ma trận đầu ra giữ đúng cấu trúc 2D (24, 2)
+        num_targets = len(Config.TARGET_FEATURES)
+        if hasattr(forecast_out, 'reshape') and forecast_out.size == (Config.HORIZON * num_targets):
+            forecast_out = forecast_out.reshape(Config.HORIZON, num_targets)
+        
+        # 5. Xuất kết quả đối chứng trực quan song song cả 2 biến mục tiêu đầu ra
+        print("\n🔮 KẾT QUẢ DỰ BÁO VS THỰC TẾ ĐA BIẾN (24h cuối):")
+        print(f"{'Thời gian':<8} | {'Dự báo MW':<12} | {'Thực tế MW':<12} | {'Dự báo Diff':<12} | {'Thực tế Diff':<12}")
+        print("-" * 75)
+        for i in range(Config.HORIZON):
+            print(f"Giờ {i+1:<5} | "
+                  f"{forecast_out[i][0]:<12.2f} | "
+                  f"{y_true[i][0]:<12.2f} | "
+                  f"{forecast_out[i][1]:<12.2f} | "
+                  f"{y_true[i][1]:<12.2f}")
             
-        # 5. TÍNH TOÁN SAI SỐ (MAPE, RMSE, MAE)
-        evaluate_model(y_true_mw, forecast_mw)
+        # 6. Tính toán hệ thống sai số tích hợp đa mục tiêu (Multi-output Evaluation)
+        evaluate_model(y_true, forecast_out)
+        
     else:
-        print("❌ Chế độ không hợp lệ. Hãy dùng --mode train hoặc --mode test")
+        print("❌ Chế độ điều khiển không hợp lệ! Vui lòng sử dụng --mode train hoặc --mode test")
 
 if __name__ == "__main__":
     main()
