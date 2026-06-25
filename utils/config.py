@@ -38,7 +38,7 @@ class Config(metaclass=ConfigMeta):
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     
     # 2. Cấu hình Vùng dữ liệu động (Có thể đổi thành 'COMED' hoặc 'DAYTON')
-    ZONE = 'AEP'
+    ZONE = 'DAYTON'
     
     # 3. Đường dẫn dữ liệu đầu ra sau xử lý và lưu mô hình
     PROCESSED_DATA_PATH = os.path.join(BASE_DIR, 'data', 'processed', 'cleaned_data.csv')
